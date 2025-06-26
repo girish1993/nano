@@ -1,7 +1,8 @@
-from typing import List, Tuple, Union
-from vector import Vector
+import copy
 from functools import reduce
-import numpy as np
+from typing import List, Tuple, Union
+
+from vector import Vector
 
 
 class Matrix:
@@ -21,6 +22,18 @@ class Matrix:
     @property
     def col_count(self):
         return self._col_count
+
+    @property
+    def T(self):
+        mat_t: Matrix = Matrix(copy.deepcopy(self.rows))
+        for i in range(mat_t.row_count):
+            for j in range(i + 1, mat_t.col_count):
+                mat_t.rows[i].inp[j], mat_t.rows[j].inp[i] = (
+                    mat_t.rows[j].inp[i],
+                    mat_t.rows[i].inp[j],
+                )
+
+        return mat_t
 
     @property
     def shape(self) -> Tuple:
@@ -60,7 +73,6 @@ class Matrix:
         return Matrix([x + y for x, y in zip(self.rows, other.rows)])
 
     def __mul__(self, other: Union["Matrix", int, float]) -> "Matrix":
-
         if isinstance(other, Matrix):
             if self.col_count != other.row_count:
                 raise ValueError(
@@ -146,18 +158,8 @@ class Matrix:
 
 if __name__ == "__main__":
     try:
-        # m1 = Matrix([[3, 4, 4], [3, 6, 9], [3, 6, 8]])
-        # m2 = Matrix(
-        #     [
-        #         [7, 12, 3, 16, 9],
-        #         [5, 18, 2, 14, 11],
-        #         [13, 6, 19, 8, 4],
-        #         [10, 15, 7, 17, 1],
-        #         [8, 2, 20, 5, 12],
-        #     ]
-        # )
-        # print(m2.det())
-        np_arr = np.array(
+        m1 = Matrix([[3, 4, 4], [3, 6, 9], [3, 6, 8]])
+        m2 = Matrix(
             [
                 [7, 12, 3, 16, 9],
                 [5, 18, 2, 14, 11],
@@ -166,8 +168,18 @@ if __name__ == "__main__":
                 [8, 2, 20, 5, 12],
             ]
         )
-        determinant = np.linalg.det(np_arr)
-        print("Determinant:", determinant)
-        # print(m1 * m2)
+        print(m2.T)
+        # np_arr = np.array(
+        #     [
+        #         [7, 12, 3, 16, 9],
+        #         [5, 18, 2, 14, 11],
+        #         [13, 6, 19, 8, 4],
+        #         [10, 15, 7, 17, 1],
+        #         [8, 2, 20, 5, 12],
+        #     ]
+        # )
+        # determinant = np.linalg.det(np_arr)
+        # print("Determinant:", determinant)
+        # # print(m1 * m2)
     except:
         raise
