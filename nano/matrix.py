@@ -1,4 +1,5 @@
 import copy
+import itertools
 from functools import reduce
 from typing import List, Tuple, Union
 
@@ -24,16 +25,23 @@ class Matrix:
         return self._col_count
 
     @property
-    def T(self):
-        mat_t: Matrix = Matrix(copy.deepcopy(self.rows))
-        for i in range(mat_t.row_count):
-            for j in range(i + 1, mat_t.col_count):
-                mat_t.rows[i].inp[j], mat_t.rows[j].inp[i] = (
-                    mat_t.rows[j].inp[i],
-                    mat_t.rows[i].inp[j],
-                )
+    def T(self) -> "Matrix":
+        if self.row_count == self.col_count:
+            mat_t: Matrix = Matrix(copy.deepcopy(self.rows))
+            for i in range(mat_t.row_count):
+                for j in range(i + 1, mat_t.col_count):
+                    mat_t.rows[i].inp[j], mat_t.rows[j].inp[i] = (
+                        mat_t.rows[j].inp[i],
+                        mat_t.rows[i].inp[j],
+                    )
+            return mat_t
 
-        return mat_t
+        non_sq_mat_t: Matrix = Matrix([Vector([]) for _ in range(self.col_count)])
+        for i, j in list(
+            itertools.product(range(self.col_count), range(self.row_count))
+        ):
+            non_sq_mat_t.rows[i].inp.insert(j, self.rows[j].inp[i])
+        return non_sq_mat_t
 
     @property
     def shape(self) -> Tuple:
@@ -165,7 +173,6 @@ if __name__ == "__main__":
                 [5, 18, 2, 14, 11],
                 [13, 6, 19, 8, 4],
                 [10, 15, 7, 17, 1],
-                [8, 2, 20, 5, 12],
             ]
         )
         print(m2.T)
