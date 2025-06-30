@@ -1,5 +1,6 @@
 import copy
 import itertools
+from collections import namedtuple
 from functools import reduce
 from typing import List, Tuple, Union
 
@@ -7,6 +8,8 @@ from vector import Vector
 
 
 class Matrix:
+    lu_decomp_parts = namedtuple("LUDecompParts", ["L", "U"])
+
     def __init__(self, rows: List[List[int | float] | float | Vector]):
         self._rows = Matrix._set_rows(rows=rows)
         self._row_count = len(rows) if rows else 0
@@ -30,9 +33,9 @@ class Matrix:
             mat_t: Matrix = Matrix(copy.deepcopy(self.rows))
             for i in range(mat_t.row_count):
                 for j in range(i + 1, mat_t.col_count):
-                    mat_t.rows[i].inp[j], mat_t.rows[j].inp[i] = (
-                        mat_t.rows[j].inp[i],
-                        mat_t.rows[i].inp[j],
+                    mat_t.rows[i][j], mat_t.rows[j][i] = (
+                        mat_t.rows[j][i],
+                        mat_t.rows[i][j],
                     )
             return mat_t
 
@@ -40,7 +43,7 @@ class Matrix:
         for i, j in list(
             itertools.product(range(self.col_count), range(self.row_count))
         ):
-            non_sq_mat_t.rows[i].inp.insert(j, self.rows[j].inp[i])
+            non_sq_mat_t.rows[i].inp.insert(j, self.rows[j][i])
         return non_sq_mat_t
 
     @property
@@ -88,8 +91,7 @@ class Matrix:
                 )
 
             col_vecs = [
-                Vector([row.inp[i] for row in other.rows])
-                for i in range(other.col_count)
+                Vector([row[i] for row in other.rows]) for i in range(other.col_count)
             ]
 
             product_rows = [
@@ -109,13 +111,20 @@ class Matrix:
 
         return Matrix([x - y for x, y in zip(self.rows, other.rows)])
 
-    @staticmethod
-    def _gaus_elim(mat: "Matrix") -> "Matrix":
+    @classmethod
+    def _create_identity_matrix(cls, num_rows: int) -> "Matrix":
+        rows = []
+        for i in range(num_rows):
+            rows.append(Vector([1 if j == i else 0 for j in range(num_rows)]))
+        return Matrix(rows)
+
+    @classmethod
+    def _gaus_elim(cls, mat: "Matrix") -> "Matrix":
+        factors = {}
+        id_mat = cls._create_identity_matrix(num_rows=mat.row_count)
         for i in range(mat.row_count - 1):
-            factors = {
-                f"{i}_{j}": (mat.rows[j].inp[i] / mat.rows[i].inp[i])
-                if mat.rows[i].inp[i]
-                else 0
+            factors = factors | {
+                f"{i}_{j}": (mat.rows[j][i] / mat.rows[i][i]) if mat.rows[i][i] else 0
                 for j in range(i + 1, mat.row_count)
             }
 
@@ -131,7 +140,7 @@ class Matrix:
         return round(
             reduce(
                 lambda elem1, elem2: elem1 * elem2,
-                [mat.rows[i].inp[i] for i in range(mat.row_count)],
+                [mat.rows[i][i] for i in range(mat.row_count)],
             ),
             2,
         )
@@ -141,8 +150,8 @@ class Matrix:
             raise ValueError("Not enough values to unpack for determinant calculation")
 
         if self.shape == (2, 2):
-            return (self.rows[0].inp[0] * self.rows[1].inp[1]) - (
-                self.rows[0].inp[1] * self.rows[1].inp[0]
+            return (self.rows[0][0] * self.rows[1][1]) - (
+                self.rows[0][1] * self.rows[1][0]
             )
 
         if self.row_count != self.col_count:
@@ -155,9 +164,9 @@ class Matrix:
         return (
             (
                 f"{self.__class__.__name__} : \n"
-                + "[\n"
+                + "["
                 + "\n".join(str(row) for row in self.rows)
-                + "\n]"
+                + "]"
             )
             if self.rows
             else "[]"
@@ -173,9 +182,11 @@ if __name__ == "__main__":
                 [5, 18, 2, 14, 11],
                 [13, 6, 19, 8, 4],
                 [10, 15, 7, 17, 1],
+                [4, 5, 6, 7, 7],
+                [6, 7, 8, 9, 0],
             ]
         )
-        print(m2.T)
+        print(m1)
         # np_arr = np.array(
         #     [
         #         [7, 12, 3, 16, 9],

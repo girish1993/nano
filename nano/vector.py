@@ -1,5 +1,5 @@
+from math import pow, sqrt
 from typing import List, Union
-from math import sqrt, pow
 
 
 class Vector:
@@ -14,6 +14,12 @@ class Vector:
     @property
     def inp(self):
         return self._inp
+
+    def __getitem__(self, index: int):
+        return self.inp[index]
+
+    def __setitem__(self, index: int, value: int | float):
+        self.inp[index] = value
 
     def __add__(self, other_vector: "Vector") -> "Vector":
         if self.size != other_vector.size:
@@ -42,7 +48,7 @@ class Vector:
         return Vector([other * x for x in self._inp])
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} : {self.inp}"
+        return f"{self.inp}"
 
     def __len__(self) -> int:
         return self._size
