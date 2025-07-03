@@ -2,14 +2,14 @@ import copy
 import itertools
 from collections import namedtuple
 from functools import reduce
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 from vector import Vector
 
+LUDecompParts = namedtuple("LUDecompParts", ["L", "U"])
+
 
 class Matrix:
-    lu_decomp_parts = namedtuple("LUDecompParts", ["L", "U"])
-
     def __init__(self, rows: List[List[int | float] | float | Vector]):
         self._rows = Matrix._set_rows(rows=rows)
         self._row_count = len(rows) if rows else 0
@@ -111,27 +111,50 @@ class Matrix:
 
         return Matrix([x - y for x, y in zip(self.rows, other.rows)])
 
-    @classmethod
-    def _create_identity_matrix(cls, num_rows: int) -> "Matrix":
+    @staticmethod
+    def _create_identity_matrix(num_rows: int) -> "Matrix":
         rows = []
         for i in range(num_rows):
-            rows.append(Vector([1 if j == i else 0 for j in range(num_rows)]))
+            rows.append(Vector([1.0 if j == i else 0.0 for j in range(num_rows)]))
         return Matrix(rows)
+
+    @staticmethod
+    def _get_lower_traingle(id_mat: "Matrix", factors: Dict) -> "Matrix":
+        for k, v in factors.items():
+            factor = k.split("_")
+            row_i, col_i = int(factor[1]), int(factor[0])
+            id_mat.rows[row_i][col_i] = v
+
+        return id_mat
 
     @classmethod
     def _gaus_elim(cls, mat: "Matrix") -> "Matrix":
         factors = {}
-        id_mat = cls._create_identity_matrix(num_rows=mat.row_count)
-        for i in range(mat.row_count - 1):
+        gass_elim: Matrix = Matrix(copy.deepcopy(mat.rows))
+        id_for_lower = Matrix._create_identity_matrix(num_rows=mat.row_count)
+        id_for_inverse = Matrix._create_identity_matrix(num_rows=mat.row_count)
+
+        for i in range(gass_elim.row_count - 1):
             factors = factors | {
-                f"{i}_{j}": (mat.rows[j][i] / mat.rows[i][i]) if mat.rows[i][i] else 0
-                for j in range(i + 1, mat.row_count)
+                f"{i}_{j}": (gass_elim.rows[j][i] / gass_elim.rows[i][i])
+                if gass_elim.rows[i][i]
+                else 0
+                for j in range(i + 1, gass_elim.row_count)
             }
 
-            for j in range(i + 1, mat.row_count):
-                mat.rows[j] = round(
-                    mat.rows[j] - (round((factors.get(f"{i}_{j}") * mat.rows[i]), 2)), 2
+            for j in range(i + 1, gass_elim.row_count):
+                gass_elim.rows[j] = round(
+                    gass_elim.rows[j]
+                    - (round((factors.get(f"{i}_{j}") * gass_elim.rows[i]), 2)),
+                    2,
                 )
+                id_for_inverse.rows[j] = round(
+                    id_for_inverse.rows[j]
+                    - (round((factors.get(f"{i}_{j}") * id_for_inverse.rows[i]), 2)),
+                    2,
+                )
+
+        lower_traingle = Matrix._get_lower_traingle(id_for_lower, factors)
 
         return mat
 
@@ -183,21 +206,8 @@ if __name__ == "__main__":
                 [13, 6, 19, 8, 4],
                 [10, 15, 7, 17, 1],
                 [4, 5, 6, 7, 7],
-                [6, 7, 8, 9, 0],
             ]
         )
-        print(m1)
-        # np_arr = np.array(
-        #     [
-        #         [7, 12, 3, 16, 9],
-        #         [5, 18, 2, 14, 11],
-        #         [13, 6, 19, 8, 4],
-        #         [10, 15, 7, 17, 1],
-        #         [8, 2, 20, 5, 12],
-        #     ]
-        # )
-        # determinant = np.linalg.det(np_arr)
-        # print("Determinant:", determinant)
-        # # print(m1 * m2)
+        print(m2.det())
     except:
         raise
