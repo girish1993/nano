@@ -1,10 +1,19 @@
 import copy
 import itertools
+import os
+import sys
 from collections import namedtuple
 from functools import reduce
 from typing import Dict, List, Tuple, Union
 
-from vector import Vector
+from base.vector import Vector
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path)
+
+parent_dir = os.path.dirname(dir_path)
+sys.path.append(parent_dir)
+
 
 LUDecompParts = namedtuple("LUDecompParts", ["L", "U"])
 

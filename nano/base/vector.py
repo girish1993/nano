@@ -1,5 +1,13 @@
+import os
+import sys
 from math import pow, sqrt
 from typing import List, Union
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path)
+
+parent_dir = os.path.dirname(dir_path)
+sys.path.append(parent_dir)
 
 
 class Vector:
