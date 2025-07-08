@@ -36,41 +36,40 @@ print(projection_matrix)
 # Starting point (origin)
 x0, y0, z0 = 0, 0, 0
 
-# Vector components
-u, v, w = 3, 4, 5
-
 fig = plt.figure()
 ax = fig.add_subplot(111, projection="3d")
-colors = np.random.rand(rand_3d_matrix.shape[0])
-
-cmap = cm.get_cmap("Paired")
-colors = cmap(np.linspace(0, 1, rand_3d_matrix.shape[0]))
-
-for i in range(len(rand_3d_matrix)):
-    ax.quiver(
-        0,
-        0,
-        0,
-        rand_3d_matrix[i, 0],
-        rand_3d_matrix[i, 1],
-        rand_3d_matrix[i, 2],
-        color=colors[i],
-    )
-
-ax.set_xlabel("X Axis")
-ax.set_ylabel("Y Axis")
-ax.set_zlabel("Z Axis")
-
-ax.set_xlim([0, np.max(rand_3d_matrix[:, 0])])
-ax.set_ylim([0, np.max(rand_3d_matrix[:, 1])])
-ax.set_zlim([0, np.max(rand_3d_matrix[:, 2])])
-
-plt.show()
 
 
 # %%
 
-r_basis = np.random.rand(3, 2)
+fig = plt.figure()
+
+
+def _plot_vectors(mat: np.ndarray, basis: np.ndarray):
+    ax = fig.add_subplot(111, projection="3d")
+    colors = np.random.rand(rand_3d_matrix.shape[0])
+    cmap = cm.get_cmap("Paired")
+    colors = cmap(np.linspace(0, 1, rand_3d_matrix.shape[0]))
+    for i in range(len(rand_3d_matrix)):
+        ax.quiver(
+            0,
+            0,
+            0,
+            rand_3d_matrix[i, 0],
+            rand_3d_matrix[i, 1],
+            rand_3d_matrix[i, 2],
+            color=colors[i],
+            linestyle="-",
+            linewidth=1.5,
+        )
+
+    ax.set_xlabel("X Axis")
+    ax.set_ylabel("Y Axis")
+    ax.set_zlabel("Z Axis")
+
+    ax.set_xlim([0, np.max(rand_3d_matrix[:, 0])])
+    ax.set_ylim([0, np.max(rand_3d_matrix[:, 1])])
+    ax.set_zlim([0, np.max(rand_3d_matrix[:, 2])])
 
 
 def _check_for_independence(X: np.ndarray) -> bool:
@@ -90,10 +89,8 @@ def _orthonormal_basis(X: np.ndarray) -> np.ndarray:
     raise ValueError("Cannot orthonormalise dependent vectors")
 
 
+r_basis = np.random.rand(3, 2)
 basis = _orthonormal_basis(X=r_basis)
-
-print("check for orthogonality of basis vectors")
-print(basis)
-print("dot product of basis vectors", round(np.dot(basis[:, 0], basis[:, 1])))
+_plot_vectors(mat=rand_3d_matrix, basis=basis)
 
 # %%
