@@ -3,25 +3,13 @@
 #%%
 %matplotlib tk
 
-import os
-import sys
-dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(dir_path)
-parent_dir = os.path.dirname(dir_path)
-sys.path.append(parent_dir)
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
+from functools import partial
 
 np.random.seed(52)
-
-rand_3d_matrix = np.random.rand(100, 3)
-basis_vectors = np.array([[1, 0], [0, 1], [0, 0]])
-projection_matrix = np.dot(rand_3d_matrix, basis_vectors)
-
-
-
 
 #%%
 def _check_for_independence(X: np.ndarray) -> bool:
@@ -50,89 +38,67 @@ def _orthonormal_basis(X: np.ndarray) -> np.ndarray:
 #%%
 
 # logic to animate the 3D plot
-
+from matplotlib.patches import ConnectionPatch
 colors = np.random.rand(rand_3d_matrix.shape[0])
 cmap = plt.get_cmap("viridis")
 colors = cmap(np.linspace(0, 1, rand_3d_matrix.shape[0]))
 
-fig, (axl, axr) = plt.subplots(1, 2, subplot_kw={'projection': '3d'}) 
+fig, (axl, axr) = plt.subplots(1, 2, subplot_kw={'projection': '3d'}, figsize=(12,6)) 
 
-# axl.set_aspect(1)
-# axr.set_box_aspect(1 / 3)
-# axr.yaxis.set_visible(False)
-
-# fig = plt.figure()
-# axl= fig.add_subplot(111, projection="3d")
-
-
-def init():
+colors_vec = ["blue", "red"]
+def init(basis_vectors: np.ndarray, X: np.ndarray, proj_data: np.ndarray):
     axl.cla()
+    axr.cla()
     axl.set_xlabel("x-axis")
     axl.set_ylabel("y-axis")
     axl.set_zlabel("z-axis")
 
-    axl.set_xlim([0, np.max(rand_3d_matrix[:, 0])])
-    axl.set_ylim([0, np.max(rand_3d_matrix[:, 1])])
-    axl.set_zlim([0, np.max(rand_3d_matrix[:, 2])])
+    axl.set_xlim([0, np.max(X[:, 0])])
+    axl.set_ylim([0, np.max(X[:, 1])])
+    axl.set_zlim([0, np.max(X[:, 2])])
     axl.set_title('3D Vector Animation')
+
+    for i in range(basis_vectors.shape[1]):
+        axr.quiver(0,
+                0,
+                0,
+                basis_vectors[:, i][0],
+                basis_vectors[:, i][1],
+                basis_vectors[:, i][2],
+                    color=colors_vec[i],
+                    arrow_length_ratio=0.2,
+                    linestyles="solid")
+        
+    axr.set_xlabel("X Axis")
+    axr.set_ylabel("Y Axis")
+    axr.set_zlabel("Z Axis")
+    axr.set_title('3D basis vectors')
+
+    axr.set_xlim(0, np.max(projected_data[:,0]))
+    axr.set_ylim(0,np.max(projected_data[:,1]))
+    axr.set_zlim(0,1)
     return ()
 
 
-def animate(frame):
-
-    data = rand_3d_matrix[0:frame+1, :]
+def animate(frame, X: np.ndarray, proj_data: np.ndarray ):
+    three_d_data = X[0:frame+1, :]
+    two_d_proj_data = proj_data[0: frame+1, :]
     for j in range(frame):
-        axl.quiver(0,0,0, data[j, 0], data[j, 1], data[j, 2],color=colors[j],
+        axl.quiver(0,0,0, three_d_data[j, 0], three_d_data[j, 1], three_d_data[j, 2],color=colors[j],
             arrow_length_ratio=0.1,
             linestyles="solid")
         
+        axr.scatter(xs=two_d_proj_data[j, 0], ys = two_d_proj_data[j , 1], zs=0, c=colors[j], marker='x', label='2d projections')
 
-ani = FuncAnimation(fig=fig, func=animate, frames=50, interval=100, init_func=init)
-
-plt.show()
-
-# %%
-
-
-
-
-fig =  plt.figure(figsize=(12, 6))
-
-axl = fig.add_subplot(1, 2, 1 , projection='3d')
-
-
-
-# basis_vectors = np.array([[1, 0], [0, 1], [0, 0]])
-basis_vectors = _orthonormal_basis(np.random.rand(3, 2))
-
+basis_vectors = np.array([[1, 0], [0, 1], [0, 0]])
+# basis_vectors = _orthonormal_basis(X=np.random.rand(3,2))
+rand_3d_matrix = np.random.rand(100, 3)
 projected_data = _low_dim_project(high_dim_data=rand_3d_matrix, basis_vectors=basis_vectors)
 
-colors = ["blue", "red"]
-cmap = plt.get_cmap("viridis")
-colors_scat = cmap(np.linspace(0, 1, rand_3d_matrix.shape[0]))
+init_pars = partial(init, basis_vectors=basis_vectors, X=rand_3d_matrix, proj_data=projected_data)
+animate_pars = partial(animate, X=rand_3d_matrix, proj_data=projected_data)
 
-for i in range(basis_vectors.shape[1]):
-    axl.quiver(0,
-              0,
-              0,
-              basis_vectors[:, i][0],
-            basis_vectors[:, i][1],
-              basis_vectors[:, i][2],
-                color=colors[i],
-                  arrow_length_ratio=0.2,
-                  linestyles="solid")
-
-axl.scatter(xs=projected_data[:, 0], ys = projected_data[:, 1], zs=np.zeros(rand_3d_matrix.shape[0]), c=colors_scat, marker='x', label='2d projections')
-
-axl.set_xlabel("X Axis")
-axl.set_ylabel("Y Axis")
-axl.set_zlabel("Z Axis")
-axl.set_title('3D basis vectors')
-
-axl.set_xlim(0, np.max(projected_data[:,0]))
-axl.set_ylim(0,np.max(projected_data[:,1]))
-axl.set_zlim(0,1)
+ani = FuncAnimation(fig=fig, func=animate_pars, frames=50, interval=300, init_func=init_pars)
 plt.show()
-
 
 # %%
