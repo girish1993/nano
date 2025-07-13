@@ -56,7 +56,7 @@ def init(basis_vectors: np.ndarray, X: np.ndarray, proj_data: np.ndarray):
     axl.set_xlim([0, np.max(X[:, 0])])
     axl.set_ylim([0, np.max(X[:, 1])])
     axl.set_zlim([0, np.max(X[:, 2])])
-    axl.set_title('3D Vector Animation')
+    axl.set_title('3D data')
 
     for i in range(basis_vectors.shape[1]):
         axr.quiver(0,
@@ -72,7 +72,7 @@ def init(basis_vectors: np.ndarray, X: np.ndarray, proj_data: np.ndarray):
     axr.set_xlabel("X Axis")
     axr.set_ylabel("Y Axis")
     axr.set_zlabel("Z Axis")
-    axr.set_title('3D basis vectors')
+    axr.set_title('dimension reduced 2D projections')
 
     axr.set_xlim(0, np.max(projected_data[:,0]))
     axr.set_ylim(0,np.max(projected_data[:,1]))
