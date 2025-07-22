@@ -27,6 +27,14 @@ class ImageTransformer:
     def scaling_factor(self):
         return self._scaling_factor
 
+    @property
+    def original_dims(self):
+        return self._original_img_dims
+
+    @property
+    def scaled_img_dims(self):
+        return self._scaled_img_dim
+
     @scaling_factor.setter
     def scaling_factor(self, factor: Tuple):
         self._scaling_factor = Scaling_Factor(x=factor[0], y=factor[1])
@@ -62,25 +70,54 @@ class ImageTransformer:
             np.arange(scaled_img_dims.height), np.arange(scaled_img_dims.width)
         )
 
-    def scale(self, input_grids) -> Tuple[np.ndarray, np.ndarray]:
+    def _interploate(
+        self, x_new: np.ndarray, y_new: np.ndarray, x_out: np.ndarray, y_out: np.ndarray
+    ):
+        return griddata(
+            (x_new, y_new),
+            self.img.flatten(),
+            (x_out, y_out),
+            method="linear",
+        )
+
+    def scale(self, x, y, x_out, y_out) -> Tuple[np.ndarray, np.ndarray]:
         flattend_grid = np.column_stack(
-            input_grids[0].flatten(),
-            input_grids[1].flatten(),
-            np.ones(input_grids[0].shape[0] * input_grids[1].shape[1]),
+            (
+                x.flatten(),
+                y.flatten(),
+                np.ones((x.shape[0] * x.shape[1],)),
+            )
         )
 
         scaled_grids = np.dot(flattend_grid, self._scaling_matrix)
+        x_new = scaled_grids[:, 0].astype(int)
+        y_new = scaled_grids[:, 1].astype(int)
 
-        return scaled_grids[:, 0].astype(int), scaled_grids[:, 1].astype(int)
-
-    def interploate(self, x: np.ndarray, y: np.ndarray, output_grid: Tuple):
-        return griddata(
-            (x, y),
-            self.img.flatten(),
-            (output_grid[0], output_grid[1]),
-            method="linear",
-        )
+        return self._interploate(x_new, y_new, x_out, y_out)
 
     @staticmethod
     def plot(img: np.ndarray):
         plt.imshow(img, cmap="gray")
+
+
+# %%
+
+if __name__ == "__main__":
+    transformer = ImageTransformer(img_path="./sample.jpg")
+    ImageTransformer.plot(transformer.img)
+
+    transformer.scaling_factor = (2, 2)
+
+    transformer.create_scaling_matrix().define_dims()
+
+    x, y = ImageTransformer.create_input_grids(transformer.original_dims)
+
+    scaled_x, scaled_y = ImageTransformer.create_output_grids(
+        transformer.scaled_img_dims
+    )
+
+    scaled_img = transformer.scale(x, y, scaled_x, scaled_y)
+    ImageTransformer.plot(scaled_img)
+
+
+# %%
