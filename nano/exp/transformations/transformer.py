@@ -1,9 +1,9 @@
 from typing import Tuple
 
-from transformations.picture import Picture
-from transformations.rotate_transform import RotateTransform
-from transformations.scaling_transform import ScalingTransform
-from transformations.shear_transform import ShearTransform
+from picture import Picture
+from rotate_transform import RotateTransform
+from scaling_transform import ScalingTransform
+from shear_transform import ShearTransform
 
 
 class ImageTransformer:
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     pic.read_image(img_path="nano/assets/sample.jpg")
 
     Picture.plot(img=pic.img)
-    transform_factor = (0, -0.25)
+    transform_factor = (0, 0.25)
     # transform_factor_th = np.pi / 4
 
     img_trnsfrmr = ImageTransformer(

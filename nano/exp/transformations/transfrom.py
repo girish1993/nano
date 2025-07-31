@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from transformations.picture import Picture
+from picture import Picture
 
 
 class Transfrom(ABC):

@@ -1,9 +1,9 @@
 from typing import Tuple
 
 import numpy as np
+from picture import Dimensions, Picture
 from scipy.interpolate import griddata
-from transformations.picture import Dimensions, Picture
-from transformations.transfrom import Transfrom
+from transfrom import Transfrom
 
 np.random.seed(52)
 
