@@ -1,10 +1,6 @@
 from collections import namedtuple
 from typing import Optional, Tuple
 
-import matplotlib
-
-matplotlib.use("WebAgg")
-
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
